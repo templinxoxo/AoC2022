@@ -34,12 +34,10 @@ defmodule Day1 do
 
   def parse_calory_list(elves_inventories_list) when is_binary(elves_inventories_list) do
     elves_inventories_list
-    |> String.split("\n\n")
-    |> Enum.reject(&(&1 == ""))
+    |> String.split("\n\n", trim: true)
     |> Enum.map(fn elf_inventory ->
       elf_inventory
-      |> String.split("\n")
-      |> Enum.reject(&(&1 == ""))
+      |> String.split("\n", trim: true)
       |> Enum.map(&String.to_integer(&1))
     end)
   end
