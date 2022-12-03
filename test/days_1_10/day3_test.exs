@@ -20,4 +20,13 @@ defmodule Day3Test do
 
     assert part1 == 157
   end
+
+  test "Part 1 - get group badges and their priority" do
+    part1 =
+      @test_data
+      |> parse_data()
+      |> find_groups_badges_priority()
+
+    assert part1 == 70
+  end
 end

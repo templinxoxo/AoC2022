@@ -6,6 +6,12 @@ defmodule Day3 do
     |> find_duplicated_items_weight()
   end
 
+  def execute_part2() do
+    get_data()
+    |> parse_data()
+    |> find_groups_badges_priority()
+  end
+
   # actual logic
   def find_duplicated_items_weight(rucksacks) do
     rucksacks
@@ -13,6 +19,18 @@ defmodule Day3 do
       rucksack
       |> get_compartments_items()
       |> get_common_items()
+      |> get_priorities()
+    end)
+    |> Enum.sum()
+  end
+
+  def find_groups_badges_priority(rucksacks) do
+    rucksacks
+    |> Enum.map(&String.to_charlist(&1))
+    |> Enum.chunk_every(3)
+    |> Enum.flat_map(fn group ->
+      group
+      |> get_group_badge()
       |> get_priorities()
     end)
     |> Enum.sum()
@@ -30,6 +48,9 @@ defmodule Day3 do
         MapSet.new(elem(compartments, 0)),
         MapSet.new(elem(compartments, 1))
       )
+
+  def get_group_badge([elf1, elf2, elf3]),
+    do: {get_common_items({elf1, elf2})} |> Tuple.append(elf3) |> get_common_items()
 
   def get_priorities(duplicated_items), do: duplicated_items |> Enum.map(&item_priority(&1))
 
