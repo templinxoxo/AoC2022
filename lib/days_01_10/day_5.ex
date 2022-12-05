@@ -7,13 +7,24 @@ defmodule Day5 do
     |> get_top_crates()
   end
 
+  def execute_part2() do
+    get_data()
+    |> parse_data()
+    |> move_crates(true)
+    |> get_top_crates()
+  end
+
   # actual logic
-  def move_crates({stacks, []}) do
+  def move_crates(data, keep_order \\ false)
+
+  def move_crates({stacks, []}, _) do
     stacks
   end
 
-  def move_crates({stacks, [[no, from, to] | instructions]}) do
-    {moved_crates, leftover} = stacks |> Enum.at(from - 1) |> Enum.split(no)
+  def move_crates({stacks, [[crates_number, from, to] | instructions]}, keep_order) do
+    {moved_crates, leftover} = stacks |> Enum.at(from - 1) |> Enum.split(crates_number)
+
+    moved_crates = if keep_order, do: moved_crates, else: Enum.reverse(moved_crates)
 
     stacks =
       stacks
@@ -21,12 +32,12 @@ defmodule Day5 do
       |> Enum.map(fn {stack, index} ->
         case index do
           i when i == from - 1 -> leftover
-          i when i == to - 1 -> (moved_crates |> Enum.reverse()) ++ stack
+          i when i == to - 1 -> moved_crates ++ stack
           _ -> stack
         end
       end)
 
-    move_crates({stacks, instructions})
+    move_crates({stacks, instructions}, keep_order)
   end
 
   def get_top_crates(stacks) do

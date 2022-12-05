@@ -24,4 +24,14 @@ defmodule Day5Test do
 
     assert part1 == "CMZ"
   end
+  
+  test "Part 2 - move crates between stacks keeping initial order" do
+    part1 =
+      @test_data
+      |> parse_data()
+      |> move_crates(true)
+      |> get_top_crates()
+
+    assert part1 == "MCD"
+  end
 end
