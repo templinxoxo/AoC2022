@@ -7,6 +7,13 @@ defmodule Day7 do
     |> find_10kb_directories()
   end
 
+  def execute_part2() do
+    get_data()
+    |> parse_data()
+    |> map_file_structure()
+    |> free_up_space()
+  end
+
   # actual logic
   def map_file_structure(commands, structure \\ [{[], "/", :dir}], current_dir \\ [])
 
@@ -66,6 +73,18 @@ defmodule Day7 do
     |> Enum.map(fn {_dir, size} -> size end)
     |> Enum.filter(&(&1 <= 100_000))
     |> Enum.sum()
+  end
+
+  def free_up_space(file_tree) do
+    {"/", total_size, _} = file_tree |> List.first()
+
+    needed_space = 30_000_000 - (70_000_000 - total_size)
+
+    file_tree
+    |> get_nested_directories()
+    |> Enum.map(fn {_dir, size} -> size end)
+    |> Enum.sort(:asc)
+    |> Enum.find(&(&1 >= needed_space))
   end
 
   def get_nested_directories(file_tree) do

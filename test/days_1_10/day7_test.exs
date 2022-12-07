@@ -38,4 +38,14 @@ defmodule Day7Test do
 
     assert part1 == 95437
   end
+
+  test "Part 1 - find smallest dir freeing up space" do
+    part1 =
+      @test_data
+      |> parse_data()
+      |> map_file_structure()
+      |> free_up_space()
+
+    assert part1 == 24_933_642
+  end
 end
