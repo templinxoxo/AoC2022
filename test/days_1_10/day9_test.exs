@@ -22,4 +22,33 @@ defmodule Day9Test do
 
     assert part1 == 13
   end
+
+  test "Part 2 - follow long rope movement" do
+    results =
+      @test_data
+      |> get_rope_steps()
+      |> count_unique_long_tail_positions()
+
+    assert results == 1
+  end
+
+  @long_rope_test_data """
+  R 5
+  U 8
+  L 8
+  D 3
+  R 17
+  D 10
+  L 25
+  U 20
+  """
+
+  test "Part 2 - follow long rope movement - bigger example" do
+    results =
+      @long_rope_test_data
+      |> get_rope_steps()
+      |> count_unique_long_tail_positions()
+
+    assert results == 36
+  end
 end

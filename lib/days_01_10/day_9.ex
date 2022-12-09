@@ -6,11 +6,27 @@ defmodule Day9 do
     |> count_unique_tail_positions()
   end
 
+  def execute_part2() do
+    get_data()
+    |> get_rope_steps()
+    |> count_unique_long_tail_positions()
+  end
+
   # actual logic
   def count_unique_tail_positions(steps) do
-    steps
-    |> get_rope_head_movements()
-    |> get_rope_tail_movements()
+    head_movement = get_rope_head_movements(steps)
+
+    2..2
+    |> Enum.reduce(head_movement, fn _, steps -> get_rope_tail_movements(steps) end)
+    |> Enum.uniq()
+    |> Enum.count()
+  end
+
+  def count_unique_long_tail_positions(steps) do
+    head_movement = get_rope_head_movements(steps)
+
+    1..9
+    |> Enum.reduce(head_movement, fn _, steps -> get_rope_tail_movements(steps) end)
     |> Enum.uniq()
     |> Enum.count()
   end
