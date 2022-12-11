@@ -33,7 +33,7 @@ defmodule Day11Test do
     If false: throw to monkey 1
   """
 
-  test "Part 1 - " do
+  test "Part 1 - count monkey business in 20 rounds" do
     part1 =
       @test_data
       |> parse_monkey_notes()
