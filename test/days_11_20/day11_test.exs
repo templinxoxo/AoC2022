@@ -37,7 +37,7 @@ defmodule Day11Test do
     part1 =
       @test_data
       |> parse_monkey_notes()
-      |> get_throws_in_time(20, 3)
+      |> get_throws_in_time(20)
       |> count_monkey_business()
 
     assert part1 == 10_605
