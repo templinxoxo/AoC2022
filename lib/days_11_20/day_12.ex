@@ -4,12 +4,12 @@ defmodule Day12 do
     get_data()
     |> parse_data()
     |> get_edges()
-    |> dijkstra()
+    |> get_path_from_start()
     |> draw()
   end
 
   # actual logic
-  def dijkstra({edges, matrix}) do
+  def get_path_from_start({edges, matrix}) do
     unvisited_nodes = matrix |> List.flatten() |> Enum.map(fn node -> {node, :infinity} end)
 
     {starting_node, _} = unvisited_nodes |> Enum.find(fn {{node, _, _}, _} -> node == "S" end)

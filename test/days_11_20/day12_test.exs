@@ -16,7 +16,7 @@ defmodule Day12Test do
       @test_data
       |> parse_data()
       |> get_edges()
-      |> dijkstra()
+      |> get_path_from_start()
 
     assert part1 == 31
   end
