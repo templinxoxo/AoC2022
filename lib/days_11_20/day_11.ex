@@ -20,12 +20,12 @@ defmodule Day11 do
     monkey1_score * monkey2_score
   end
 
-  def get_throws_in_time({monkeys, items}, rounds, relif_divider \\ 1) do
+  def get_throws_in_time({monkeys, items}, rounds, worry_divider \\ 1) do
     {_, throws_history} =
       1..rounds
       |> Enum.reduce({items, []}, fn _round, {round_items, history} ->
         {next_round_items, round_history} =
-          throw_during_single_round(round_items, monkeys, relif_divider)
+          throw_during_single_round(round_items, monkeys, worry_divider)
 
         {
           next_round_items,
@@ -36,19 +36,19 @@ defmodule Day11 do
     throws_history
   end
 
-  def throw_during_single_round(round_items, monkeys, relif_divider) do
+  def throw_during_single_round(round_items, monkeys, worry_divider) do
     monkeys
     |> Enum.reduce({round_items, []}, fn monkey, {items, history} ->
       {current_monkey_items, other_items} = Enum.split_with(items, &(elem(&1, 0) == monkey.index))
 
-      thrown_items = current_monkey_items |> Enum.map(&throw_item(&1, monkey))
+      thrown_items = current_monkey_items |> Enum.map(&throw_item(&1, monkey, worry_divider))
 
       {other_items ++ thrown_items, history ++ current_monkey_items}
     end)
   end
 
-  def throw_item({_, item}, monkey) do
-    new_worry = floor(calculate_worry(item, monkey.operation) / 3)
+  def throw_item({_, item}, monkey, worry_divider) do
+    new_worry = floor(calculate_worry(item, monkey.operation) / worry_divider)
 
     if rem(new_worry, monkey.test) == 0 do
       {monkey.if_true, new_worry}
