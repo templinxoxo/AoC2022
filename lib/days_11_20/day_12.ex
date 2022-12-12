@@ -8,6 +8,14 @@ defmodule Day12 do
     |> draw()
   end
 
+  def execute_part2() do
+    get_data()
+    |> parse_data()
+    |> get_edges()
+    |> get_path_from_any_low_alt()
+    |> draw()
+  end
+
   # actual logic
   def get_path_from_start({edges, matrix}) do
     unvisited_nodes = matrix |> List.flatten() |> Enum.map(fn node -> {node, :infinity} end)
@@ -15,6 +23,18 @@ defmodule Day12 do
     {starting_node, _} = unvisited_nodes |> Enum.find(fn {{node, _, _}, _} -> node == "S" end)
 
     {cost, history} = dijkstra([{starting_node, 0, []}], unvisited_nodes, [], edges)
+    {cost, history, matrix}
+  end
+
+  def get_path_from_any_low_alt({edges, matrix}) do
+    unvisited_nodes = matrix |> List.flatten() |> Enum.map(fn node -> {node, :infinity} end)
+
+    starting_nodes =
+      unvisited_nodes
+      |> Enum.filter(fn {{node, _, _}, _} -> node in ["S", "a"] end)
+      |> Enum.map(fn {node, _} -> {node, 0, []} end)
+
+    {cost, history} = dijkstra(starting_nodes, unvisited_nodes, [], edges)
     {cost, history, matrix}
   end
 
