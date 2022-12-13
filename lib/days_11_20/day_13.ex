@@ -42,18 +42,7 @@ defmodule Day13 do
     packets
     |> Enum.flat_map(& &1)
     |> Enum.concat(@divider_packets)
-    |> Enum.sort(fn p1, p2 ->
-      case is_ordered?(p1, p2) do
-        :continue ->
-          IO.inspect(p1)
-          IO.inspect(p1)
-          IO.inspect("")
-          false
-
-        ordered ->
-          ordered
-      end
-    end)
+    |> Enum.sort(&is_ordered?/2)
   end
 
   def multiply_divider_packets(packets) do
