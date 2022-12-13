@@ -31,4 +31,14 @@ defmodule Day13Test do
 
     assert part1 == 13
   end
+
+  test "Part 2 - find right ordered packets" do
+    part2 =
+      @test_data
+      |> parse_data()
+      |> order_packets_with_dividers()
+      |> multiply_divider_packets()
+
+    assert part2 == 140
+  end
 end

@@ -7,6 +7,13 @@ defmodule Day13 do
     |> sum_ordered_packets()
   end
 
+  def execute_part2() do
+    get_data()
+    |> parse_data()
+    |> order_packets_with_dividers()
+    |> multiply_divider_packets()
+  end
+
   # actual logic
   def find_in_order_packets(packets) do
     packets
@@ -24,6 +31,37 @@ defmodule Day13 do
     |> Enum.filter(fn {_packets, _index, ordered} -> ordered end)
     |> Enum.map(fn {_packets, index, _ordered} -> index end)
     |> Enum.sum()
+  end
+
+  @divider_packets [
+    [[2]],
+    [[6]]
+  ]
+
+  def order_packets_with_dividers(packets) do
+    packets
+    |> Enum.flat_map(& &1)
+    |> Enum.concat(@divider_packets)
+    |> Enum.sort(fn p1, p2 ->
+      case is_ordered?(p1, p2) do
+        :continue ->
+          IO.inspect(p1)
+          IO.inspect(p1)
+          IO.inspect("")
+          false
+
+        ordered ->
+          ordered
+      end
+    end)
+  end
+
+  def multiply_divider_packets(packets) do
+    packets
+    |> Enum.with_index()
+    |> Enum.map(fn {packets, index} -> {packets, index + 1} end)
+    |> Enum.filter(&(elem(&1, 0) in @divider_packets))
+    |> Enum.reduce(1, &(elem(&1, 1) * &2))
   end
 
   def is_ordered?(p1, p2) when is_integer(p1) and is_integer(p2) do
