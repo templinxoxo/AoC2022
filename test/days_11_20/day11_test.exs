@@ -37,9 +37,39 @@ defmodule Day11Test do
     part1 =
       @test_data
       |> parse_monkey_notes()
-      |> get_throws_in_time(20)
+      |> get_throws_in_time(20, 3)
       |> count_monkey_business()
 
     assert part1 == 10_605
+  end
+
+  test "Part 2 - count monkey business in 20 rounds" do
+    part1 =
+      @test_data
+      |> parse_monkey_notes()
+      |> get_throws_in_time(20)
+      |> count_monkey_business()
+
+    assert part1 == 99 * 103
+  end
+
+  test "Part 2 - count monkey business in 1000 rounds" do
+    part1 =
+      @test_data
+      |> parse_monkey_notes()
+      |> get_throws_in_time(1000)
+      |> count_monkey_business()
+
+    assert part1 == 5192 * 5204
+  end
+
+  test "Part 2 - count monkey business in 10000 rounds" do
+    part1 =
+      @test_data
+      |> parse_monkey_notes()
+      |> get_throws_in_time(10000)
+      |> count_monkey_business()
+
+    assert part1 == 52166 * 52013
   end
 end

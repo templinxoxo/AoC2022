@@ -7,6 +7,13 @@ defmodule Day11 do
     |> count_monkey_business()
   end
 
+  def execute_part2() do
+    get_data()
+    |> parse_monkey_notes()
+    |> get_throws_in_time(10_000)
+    |> count_monkey_business()
+  end
+
   # actual logic
   def count_monkey_business(throws_history) do
     [{_monkey1, monkey1_score}, {_monkey2, monkey2_score}] =
@@ -21,11 +28,18 @@ defmodule Day11 do
   end
 
   def get_throws_in_time({monkeys, items}, rounds, worry_divider \\ 1) do
+    monkey_coprime_numbers_cycle = get_monkey_coprime_numbers_cycle(monkeys)
+
     {_, throws_history} =
       1..rounds
       |> Enum.reduce({items, []}, fn _round, {round_items, history} ->
         {next_round_items, round_history} =
-          throw_during_single_round(round_items, monkeys, worry_divider)
+          throw_during_single_round(
+            round_items,
+            monkeys,
+            worry_divider,
+            monkey_coprime_numbers_cycle
+          )
 
         {
           next_round_items,
@@ -36,12 +50,15 @@ defmodule Day11 do
     throws_history
   end
 
-  def throw_during_single_round(round_items, monkeys, worry_divider) do
+  def throw_during_single_round(round_items, monkeys, worry_divider, monkey_coprime_numbers_cycle) do
     monkeys
     |> Enum.reduce({round_items, []}, fn monkey, {items, history} ->
       {current_monkey_items, other_items} = Enum.split_with(items, &(elem(&1, 0) == monkey.index))
 
-      thrown_items = current_monkey_items |> Enum.map(&throw_item(&1, monkey, worry_divider))
+      thrown_items =
+        current_monkey_items
+        |> Enum.map(&throw_item(&1, monkey, worry_divider))
+        |> Enum.map(fn item -> fit_in_coprime_number_cycle(item, monkey_coprime_numbers_cycle) end)
 
       {other_items ++ thrown_items, history ++ current_monkey_items}
     end)
@@ -55,6 +72,13 @@ defmodule Day11 do
     else
       {monkey.if_false, new_worry}
     end
+  end
+
+  def fit_in_coprime_number_cycle({monkey, item}, monkey_coprime_numbers_cycle),
+    do: {monkey, Integer.mod(item, monkey_coprime_numbers_cycle)}
+
+  def get_monkey_coprime_numbers_cycle(monkeys) do
+    Enum.reduce(monkeys, 1, fn %{test: test}, cycle -> cycle * test end)
   end
 
   def calculate_worry(item, "* old"), do: item * item
