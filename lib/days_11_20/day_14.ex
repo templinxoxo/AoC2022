@@ -60,8 +60,6 @@ defmodule Day14 do
         [start_coortinates] ++ fallen_sand
 
       new_sand_coordinates ->
-        # print(start_coortinates, bounds, cave_formation, [new_sand_coordinates] ++ fallen_sand)
-
         track_falling_sand(
           start_coortinates,
           bounds,
@@ -98,8 +96,6 @@ defmodule Day14 do
   end
 
   def get_next_coordinates({x, y}, taken_corrdinates) do
-    # IO.puts("#{x}, #{y}")
-
     cond do
       {x, y + 1} not in taken_corrdinates -> {x, y + 1}
       {x - 1, y + 1} not in taken_corrdinates -> {x - 1, y + 1}

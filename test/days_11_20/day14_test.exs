@@ -3,6 +3,7 @@ defmodule Day14Test do
   doctest Day14
   import Day14
   import Day14Pt2
+  import Day14Rweork
 
   @test_data """
   498,4 -> 498,6 -> 496,6
@@ -27,10 +28,19 @@ defmodule Day14Test do
     assert part2 == 93
   end
 
-  test "Part 2 - count falling sand" do
+  test "Part 2 - count negative space" do
     part2 =
       @test_data
       |> count_falling_sand()
+
+    assert part2 == 93
+  end
+
+  test "Part 2 - better brute force" do
+    part2 =
+      @test_data
+      |> parse_data()
+      |> go_through_sand_piramide()
 
     assert part2 == 93
   end
