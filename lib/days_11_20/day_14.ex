@@ -5,11 +5,36 @@ defmodule Day14 do
   def execute_part1() do
     get_data()
     |> parse_data()
-    |> count_falling_sand()
+    |> count_infinite_falling_sand()
+  end
+
+  def execute_part2() do
+    get_data()
+    |> parse_data()
+    |> count_falling_sand_brute_force()
   end
 
   # actual logic
-  def count_falling_sand(cave_formation) do
+  def count_infinite_falling_sand(cave_formation) do
+    print(cave_formation, [])
+
+    fallen_sand = track_infinite_falling_sand(cave_formation, [])
+
+    fallen_sand |> length()
+  end
+
+  def track_infinite_falling_sand(cave_formation, fallen_sand) do
+    case track_sand_fall({0, 0}, cave_formation, fallen_sand) do
+      {:end, :infinite} ->
+        fallen_sand
+
+      new_sand_coordinates ->
+        print(cave_formation, [new_sand_coordinates] ++ fallen_sand)
+        track_infinite_falling_sand(cave_formation, [new_sand_coordinates] ++ fallen_sand)
+    end
+  end
+
+  def count_falling_sand_brute_force(cave_formation) do
     print(cave_formation, [])
 
     fallen_sand = track_falling_sand(cave_formation, [])
@@ -18,9 +43,9 @@ defmodule Day14 do
   end
 
   def track_falling_sand(cave_formation, fallen_sand) do
-    case track_sand_fall({0, 0}, cave_formation, fallen_sand) do
-      {:end, :infinite} ->
-        fallen_sand
+    case track_sand_fall({0, 0}, cave_formation, fallen_sand, false) do
+      {0, 0} ->
+        [{0, 0}] ++ fallen_sand
 
       new_sand_coordinates ->
         print(cave_formation, [new_sand_coordinates] ++ fallen_sand)
@@ -28,24 +53,28 @@ defmodule Day14 do
     end
   end
 
-  def track_sand_fall(position, cave_formation, fallen_sand) do
+  def track_sand_fall(position, cave_formation, fallen_sand, infinite \\ true) do
     %{
       x: [xMin, xMax],
       y: [_yMin, yMax]
     } = get_cave_bounds(cave_formation)
 
-    case position do
-      {:end, coordinates} ->
+    case {position, infinite} do
+      {{:end, coordinates}, _} ->
         coordinates
 
-      {x0, y0} when x0 <= xMin or x0 >= xMax or y0 >= yMax ->
+      {{x0, y0}, false} when y0 == yMax ->
+        {x0, y0}
+
+      {{x0, y0}, true} when x0 <= xMin or x0 >= xMax or y0 >= yMax ->
         {:end, :infinite}
 
       _ ->
         track_sand_fall(
           get_next_coordinates(position, fallen_sand ++ cave_formation),
           cave_formation,
-          fallen_sand
+          fallen_sand,
+          infinite
         )
     end
   end
@@ -97,31 +126,25 @@ defmodule Day14 do
   end
 
   def print(cave_formation, fallen_sand) do
-    case System.get_env("print") do
-      "true" ->
-        %{
-          x: [xMin, xMax],
-          y: [yMin, yMax]
-        } = get_cave_bounds(cave_formation)
+    %{
+      x: [xMin, xMax],
+      y: [yMin, yMax]
+    } = get_cave_bounds(cave_formation)
 
-        yMin..yMax
-        |> Enum.each(fn y ->
-          xMin..xMax
-          |> Enum.map(fn x ->
-            cond do
-              x == 0 and y == 0 -> "+"
-              Enum.member?(cave_formation, {x, y}) -> "#"
-              Enum.member?(fallen_sand, {x, y}) -> "o"
-              true -> "."
-            end
-          end)
-          |> Enum.join("")
-          |> IO.puts()
-        end)
-
-      _ ->
-        nil
-    end
+    yMin..yMax
+    |> Enum.each(fn y ->
+      xMin..xMax
+      |> Enum.map(fn x ->
+        cond do
+          x == 0 and y == 0 -> "+"
+          Enum.member?(cave_formation, {x, y}) -> "#"
+          Enum.member?(fallen_sand, {x, y}) -> "."
+          true -> " "
+        end
+      end)
+      |> Enum.join("")
+      |> IO.puts()
+    end)
   end
 
   defmemo get_cave_bounds(cave_formation), expires_in: 30 do
