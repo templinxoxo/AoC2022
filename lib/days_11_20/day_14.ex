@@ -16,48 +16,66 @@ defmodule Day14 do
 
   # actual logic
   def count_infinite_falling_sand(cave_formation) do
-    print(cave_formation, [])
+    bounds = get_cave_bounds(cave_formation)
+    print({0, 0}, bounds, cave_formation, [])
 
-    fallen_sand = track_infinite_falling_sand(cave_formation, [])
+    fallen_sand = track_infinite_falling_sand(bounds, cave_formation, [])
 
     fallen_sand |> length()
   end
 
-  def track_infinite_falling_sand(cave_formation, fallen_sand) do
-    case track_sand_fall({0, 0}, cave_formation, fallen_sand) do
+  def track_infinite_falling_sand(bounds, cave_formation, fallen_sand) do
+    case track_sand_fall(
+           {0, 0},
+           bounds,
+           cave_formation ++ fallen_sand
+         ) do
       {:end, :infinite} ->
         fallen_sand
 
       new_sand_coordinates ->
-        print(cave_formation, [new_sand_coordinates] ++ fallen_sand)
-        track_infinite_falling_sand(cave_formation, [new_sand_coordinates] ++ fallen_sand)
+        # print({0, 0}, bounds, cave_formation, [new_sand_coordinates] ++ fallen_sand)
+
+        track_infinite_falling_sand(bounds, cave_formation, [new_sand_coordinates] ++ fallen_sand)
     end
   end
 
   def count_falling_sand_brute_force(cave_formation) do
-    print(cave_formation, [])
+    bounds = get_cave_bounds(cave_formation)
+    print({0, 0}, bounds, cave_formation, [])
 
-    fallen_sand = track_falling_sand(cave_formation, [])
+    fallen_sand = track_falling_sand({0, 0}, bounds, cave_formation, [])
 
     fallen_sand |> length()
   end
 
-  def track_falling_sand(cave_formation, fallen_sand) do
-    case track_sand_fall({0, 0}, cave_formation, fallen_sand, false) do
-      {0, 0} ->
-        [{0, 0}] ++ fallen_sand
+  def track_falling_sand(start_coortinates, bounds, cave_formation, fallen_sand) do
+    case track_sand_fall(
+           start_coortinates,
+           bounds,
+           fallen_sand ++ cave_formation,
+           false
+         ) do
+      coordinates when coordinates == start_coortinates ->
+        [start_coortinates] ++ fallen_sand
 
       new_sand_coordinates ->
-        print(cave_formation, [new_sand_coordinates] ++ fallen_sand)
-        track_falling_sand(cave_formation, [new_sand_coordinates] ++ fallen_sand)
+        # print(start_coortinates, bounds, cave_formation, [new_sand_coordinates] ++ fallen_sand)
+
+        track_falling_sand(
+          start_coortinates,
+          bounds,
+          cave_formation,
+          [new_sand_coordinates] ++ fallen_sand
+        )
     end
   end
 
-  def track_sand_fall(position, cave_formation, fallen_sand, infinite \\ true) do
+  def track_sand_fall(position, bounds, filled_coordinates, infinite \\ true) do
     %{
       x: [xMin, xMax],
       y: [_yMin, yMax]
-    } = get_cave_bounds(cave_formation)
+    } = bounds
 
     case {position, infinite} do
       {{:end, coordinates}, _} ->
@@ -71,16 +89,16 @@ defmodule Day14 do
 
       _ ->
         track_sand_fall(
-          get_next_coordinates(position, fallen_sand ++ cave_formation),
-          cave_formation,
-          fallen_sand,
+          get_next_coordinates(position, filled_coordinates),
+          bounds,
+          filled_coordinates,
           infinite
         )
     end
   end
 
   def get_next_coordinates({x, y}, taken_corrdinates) do
-    IO.puts("#{x}, #{y}")
+    # IO.puts("#{x}, #{y}")
 
     cond do
       {x, y + 1} not in taken_corrdinates -> {x, y + 1}
@@ -125,20 +143,20 @@ defmodule Day14 do
     |> Enum.uniq()
   end
 
-  def print(cave_formation, fallen_sand) do
+  def print({x0, y0}, bounds, cave_formation, fallen_sand) do
     %{
       x: [xMin, xMax],
       y: [yMin, yMax]
-    } = get_cave_bounds(cave_formation)
+    } = bounds
 
     yMin..yMax
     |> Enum.each(fn y ->
       xMin..xMax
       |> Enum.map(fn x ->
         cond do
-          x == 0 and y == 0 -> "+"
-          Enum.member?(cave_formation, {x, y}) -> "#"
           Enum.member?(fallen_sand, {x, y}) -> "."
+          Enum.member?(cave_formation, {x, y}) -> "#"
+          x == x0 and y == y0 -> "+"
           true -> " "
         end
       end)
