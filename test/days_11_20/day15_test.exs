@@ -28,4 +28,13 @@ defmodule Day15Test do
 
     assert part1 == 26
   end
+
+  test "Part 1 - find distress signal coordinates" do
+    part1 =
+      @test_data
+      |> parse_data()
+      |> find_distess_coordinates_brute_force(20)
+
+    assert part1 == 56_000_011
+  end
 end
