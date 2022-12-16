@@ -21,7 +21,6 @@ defmodule Day16Test do
       @test_data
       |> parse_data()
       |> calculate_max_released_pressure()
-      |> IO.inspect()
 
     assert part1 == 1651
   end

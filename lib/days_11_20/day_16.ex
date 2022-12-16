@@ -1,4 +1,6 @@
 defmodule Day16 do
+  import Day16.FindPaths
+
   # execute methods
   def execute_part1() do
     get_data()
@@ -8,76 +10,60 @@ defmodule Day16 do
 
   # actual logic
   def calculate_max_released_pressure(nodes) do
-    go_to_next_most_value_node("AA", nodes, 30)
-    |> Enum.map(&elem(&1, 1))
-    |> Enum.sum()
+    working_nodes_map = get_path_cost_between_working_valve_nodes(nodes)
+    time = 30
+
+    [[{"AA", 0}]]
+    |> get_all_paths([], working_nodes_map, time)
+    |> Enum.map(fn path -> calculate_released_pressure(path, nodes, time) end)
+    |> Enum.max()
   end
 
-  def go_to_next_most_value_node(node, visited_nodes \\ [], nodes, time_left) do
-    visited = Enum.map(visited_nodes, &elem(&1, 0))
+  @spec get_all_paths(
+          List.t(List.t(Day16.FindPaths.valve_node())),
+          List.t(List.t(Day16.FindPaths.valve_node())),
+          Day16.FindPaths.node_map(),
+          Integer.t()
+        ) :: List.t(List.t(Day16.FindPaths.valve_node()))
 
-    find_tree_paths(node, nodes, time_left)
-    |> Enum.reject(fn
-      [] -> true
-      path -> List.last(path) in visited
-    end)
-    |> Enum.map(fn path ->
-      node = List.last(path)
-      {value, _} = Map.get(nodes, node)
-
-      time_left_after_path = time_left - length(path)
-
-      {time_left_after_path * value, time_left_after_path, node}
-    end)
-    |> Enum.sort_by(&elem(&1, 0), :desc)
-    |> case do
-      [] ->
-        visited_nodes
-
-      [{0, _, _} | _] ->
-        visited_nodes
-
-      [{value, time_left, node} | _] ->
-        go_to_next_most_value_node(node, visited_nodes ++ [{node, value}], nodes, time_left)
-    end
-  end
-
-  def find_tree_paths(node, nodes, time_left) when is_binary(node) do
-    find_tree_paths([[node]], [], nodes, time_left)
-  end
-
-  def find_tree_paths([], finished_paths, _nodes, _time_left) do
+  def get_all_paths([], finished_paths, _nodes, _max_cost) do
     finished_paths
   end
 
-  def find_tree_paths(paths, finished_paths, nodes, time_left) do
-    visited_nodes =
-      (paths ++ finished_paths)
-      |> List.flatten()
-      |> Enum.uniq()
+  def get_all_paths([path | paths], finished_paths, nodes, max_cost) do
+    path_nodes = path |> Enum.map(fn {node, _} -> node end)
+    {current_node, _} = List.last(path)
+    current_cost = path_cost(path)
 
-    [current_path | other_paths] = paths
+    {_value, neighbors} = Map.get(nodes, current_node)
 
-    current_node =
-      current_path
-      |> List.last()
-
-    next_steps =
-      nodes
-      |> Map.get(current_node)
-      |> elem(1)
-      |> Enum.reject(fn node -> node in visited_nodes end)
-
-    if next_steps == [] or time_left - length(current_path) < 2 do
-      find_tree_paths(other_paths, finished_paths, nodes, time_left)
-    else
-      new_paths = Enum.map(next_steps, &(current_path ++ [&1]))
-
-      new_paths
-      |> Enum.concat(other_paths)
-      |> Enum.sort_by(&length(&1), :asc)
-      |> find_tree_paths(finished_paths ++ new_paths, nodes, time_left)
+    neighbors
+    |> Enum.reject(fn {node, cost} -> node in path_nodes or cost + current_cost > max_cost end)
+    |> Enum.map(fn node -> path ++ [node] end)
+    |> case do
+      [] -> get_all_paths(paths, finished_paths ++ [path], nodes, max_cost)
+      new_paths -> get_all_paths(paths ++ new_paths, finished_paths ++ [path], nodes, max_cost)
     end
+  end
+
+  @spec calculate_released_pressure(
+          List.t(Day16.FindPaths.valve_node()),
+          Day16.FindPaths.node_map(),
+          Integer.t()
+        ) :: Integer.t()
+  def calculate_released_pressure(path, nodes, total_time) do
+    {pressure, _} =
+      path
+      |> Enum.reduce({0, total_time}, fn {node, move_time},
+                                         {total_pressure_released, start_time} ->
+        time_left = start_time - move_time
+        {pressure_flow, _} = Map.get(nodes, node)
+        node_pressure_released = time_left * pressure_flow
+
+        {total_pressure_released + node_pressure_released, time_left}
+      end)
+
+    pressure
   end
 
   # helpers
@@ -85,6 +71,7 @@ defmodule Day16 do
     Api.get_input(16)
   end
 
+  @spec parse_data(binary) :: Day16.FindPaths.node_map()
   def parse_data(data) do
     data
     |> String.split("\n", trim: true)
@@ -100,10 +87,9 @@ defmodule Day16 do
 
       {
         node,
-        {String.to_integer(value), Enum.map(neighbors, &String.trim(&1))}
+        {String.to_integer(value), Enum.map(neighbors, &{String.trim(&1), 1})}
       }
     end)
     |> Map.new()
-    |> IO.inspect()
   end
 end
