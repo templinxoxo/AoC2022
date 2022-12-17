@@ -8,6 +8,12 @@ defmodule Day16 do
     |> calculate_max_released_pressure()
   end
 
+  def execute_part2() do
+    get_data()
+    |> parse_data()
+    |> calculate_max_released_pressure_with_elephant()
+  end
+
   # actual logic
   def calculate_max_released_pressure(nodes) do
     working_nodes_map = get_path_cost_between_working_valve_nodes(nodes)
@@ -17,6 +23,42 @@ defmodule Day16 do
     |> get_all_paths([], working_nodes_map, time)
     |> Enum.map(fn path -> calculate_released_pressure(path, nodes, time) end)
     |> Enum.max()
+  end
+
+  def calculate_max_released_pressure_with_elephant(nodes) do
+    working_nodes_map = get_path_cost_between_working_valve_nodes(nodes)
+    time = 26
+
+    human_path =
+      [[{"AA", 0}]]
+      |> get_all_paths([], working_nodes_map, time)
+      |> Enum.max_by(fn path -> calculate_released_pressure(path, nodes, time) end)
+
+    visited_nodes = Enum.map(human_path, fn {node, _} -> node end) -- ["AA"]
+
+    remaining_nodes =
+      working_nodes_map
+      |> Map.drop(visited_nodes)
+      |> Map.to_list()
+      |> IO.inspect()
+      |> Enum.map(fn {node, {value, neighbors}} ->
+        {
+          node,
+          {
+            value,
+            Enum.reject(neighbors, fn {n, _} -> n in visited_nodes end)
+          }
+        }
+      end)
+      |> Map.new()
+
+    elephant_path =
+      [[{"AA", 0}]]
+      |> get_all_paths([], remaining_nodes, time)
+      |> Enum.max_by(fn path -> calculate_released_pressure(path, nodes, time) end)
+
+    calculate_released_pressure(human_path, nodes, time) +
+      calculate_released_pressure(elephant_path, nodes, time)
   end
 
   @spec get_all_paths(
