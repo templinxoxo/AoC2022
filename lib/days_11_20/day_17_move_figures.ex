@@ -1,11 +1,11 @@
 defmodule Day17.MoveFigures do
   import Day17.Figures
 
-  def calculate_figures_movement(moves_pattern) do
+  def calculate_figures_movement(moves_pattern, steps) do
     floor = 0..6 |> MapSet.new()
     tower_levels = %{0 => floor}
 
-    calculate_figures_movement(0, 0, tower_levels, moves_pattern, 2022)
+    calculate_figures_movement(0, 0, tower_levels, moves_pattern, steps)
   end
 
   def calculate_figures_movement(_figure_number, _move_number, tower_levels, _moves_pattern, 0) do
@@ -85,7 +85,7 @@ defmodule Day17.MoveFigures do
         Integer.mod(figure_number + 1, 5),
         Integer.mod(move_number + 1, moves_len),
         Map.merge(tower_levels, new_levels),
-        x
+        {x, y0}
       }
     end
   end
