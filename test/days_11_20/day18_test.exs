@@ -19,12 +19,21 @@ defmodule Day18Test do
   2,3,5
   """
 
-  test "Part 1 - cound lava droplets sides" do
+  test "Part 1 - count lava droplets surface area" do
     part1 =
       @test_data
       |> parse_data()
-      |> count_sides()
+      |> count_surface_area()
 
     assert part1 == 64
+  end
+
+  test "Part 2 - count lava droplets exterior surface area" do
+    part2 =
+      @test_data
+      |> parse_data()
+      |> count_outside_surface_area()
+
+    assert part2 == 58
   end
 end
