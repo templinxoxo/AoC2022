@@ -6,42 +6,67 @@ defmodule Day19 do
     |> sum_blueprint_quality()
   end
 
+  def execute_part2() do
+    get_data()
+    |> parse_data()
+    |> product_of_top_three_blueprints()
+  end
+
   # actual logic
   def sum_blueprint_quality(blueprints) do
     blueprints
     |> Enum.map(fn {blueprint_number, blueprint} ->
       blueprint
-      |> get_building_order_for_max_geodes()
+      |> get_building_order_for_max_geodes(24)
       |> List.first()
       |> get_blueprint_quality(blueprint_number)
     end)
     |> Enum.sum()
   end
 
-  def get_blueprint_quality(
+  def product_of_top_three_blueprints(blueprints) do
+    blueprints
+    |> Enum.take(3)
+    |> Enum.map(fn {_blueprint_number, blueprint} ->
+      blueprint
+      |> get_building_order_for_max_geodes(32)
+      |> List.first()
+      |> get_blueprint_geodes_total()
+    end)
+    |> Enum.reduce(&(&1 * &2))
+  end
+
+  def get_blueprint_geodes_total(
         {%{"geode" => geode_number}, %{"geode" => geode_robots_number}, moves_left, _history,
-         _finished},
+         _finished}
+      ) do
+    geode_number + geode_robots_number * moves_left
+  end
+
+  def get_blueprint_quality(
+        robot_building_order,
         blueprint_number
       ) do
-    (geode_number + geode_robots_number * moves_left) * blueprint_number
+    get_blueprint_geodes_total(robot_building_order) * blueprint_number
   end
 
   @default_robots %{"ore" => 1, "clay" => 0, "obsidian" => 0, "geode" => 0}
   @materials ["ore", "clay", "obsidian", "geode"]
   @default_inventory %{"ore" => 0, "clay" => 0, "obsidian" => 0, "geode" => 0}
-  @max_time 24
 
-  def get_building_order_for_max_geodes(robot_blueprints) do
+  def get_building_order_for_max_geodes(robot_blueprints, max_time) do
     build_next_geode_robot(
-      [{@default_inventory, @default_robots, @max_time, [], false}],
-      robot_blueprints
+      [{@default_inventory, @default_robots, max_time, [], false}],
+      robot_blueprints,
+      max_time
     )
   end
 
-  def build_next_geode_robot(robot_building_order, robot_blueprints) do
+  def build_next_geode_robot(robot_building_order, robot_blueprints, max_time) do
     build_next_robot(
       robot_building_order,
-      robot_blueprints
+      robot_blueprints,
+      max_time
     )
     |> Enum.map(fn {inventory, current_robots, moves_left, history, true} ->
       {inventory, current_robots, moves_left, history, false}
@@ -52,11 +77,11 @@ defmodule Day19 do
         robot_building_order
 
       new_robot_building_order ->
-        build_next_geode_robot(new_robot_building_order, robot_blueprints)
+        build_next_geode_robot(new_robot_building_order, robot_blueprints, max_time)
     end
   end
 
-  def build_next_robot(robot_building_order, robot_blueprints) do
+  def build_next_robot(robot_building_order, robot_blueprints, max_time) do
     {finished_moves, in_progress_moves} =
       Enum.split_with(robot_building_order, fn
         {_inventory, _robots, _moves_left, _history, finished} -> finished
@@ -73,7 +98,7 @@ defmodule Day19 do
           |> get_next_available_robots(current_robots)
           |> Enum.map(fn robot_blueprint ->
             {new_inventory, new_robots, moves_left, move} =
-              build_robot(robot_blueprint, current_robots, inventory, moves_left)
+              build_robot(robot_blueprint, current_robots, inventory, moves_left, max_time)
 
             finished = move |> elem(1) == "geode"
 
@@ -83,7 +108,7 @@ defmodule Day19 do
         |> Enum.concat(finished_moves)
         |> remove_too_long_paths()
         |> remove_non_optimal_paths()
-        |> build_next_robot(robot_blueprints)
+        |> build_next_robot(robot_blueprints, max_time)
     end
   end
 
@@ -125,7 +150,13 @@ defmodule Day19 do
     end)
   end
 
-  def build_robot({robot_material, cost_list}, current_robots, current_inventory, moves_left) do
+  def build_robot(
+        {robot_material, cost_list},
+        current_robots,
+        current_inventory,
+        moves_left,
+        max_time
+      ) do
     min_time_until_can_build =
       cost_list
       |> Enum.map(fn {material, cost} ->
@@ -164,7 +195,7 @@ defmodule Day19 do
       new_inventory,
       new_robots,
       moves_after_building,
-      {@max_time - moves_after_building, robot_material}
+      {max_time - moves_after_building, robot_material}
     }
   end
 
