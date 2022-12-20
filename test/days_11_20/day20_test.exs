@@ -21,4 +21,13 @@ defmodule Day20Test do
 
     assert part1 == 3
   end
+
+  test "Part 2 - decrypt file with decryption key and repetitions" do
+    part1 =
+      @test_data
+      |> parse_data()
+      |> decrypt_file(10, get_decryption_key())
+
+    assert part1 == 1_623_178_306
+  end
 end

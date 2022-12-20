@@ -6,19 +6,41 @@ defmodule Day20 do
     |> decrypt_file()
   end
 
+  def get_decryption_key(), do: 811_589_153
+
+  def execute_part2() do
+    get_data()
+    |> parse_data()
+    |> decrypt_file(10, get_decryption_key())
+  end
+
   # actual logic
-  def decrypt_file(file) do
+  def decrypt_file(file, repetitions \\ 1, decryption_key \\ 1) do
     file
-    |> decrypt()
+    |> apply_decryption_key(decryption_key)
+    |> add_init_positions()
+    |> decrypt(repetitions)
     |> reorder()
     |> get_values_at_indexes([1000, 2000, 3000])
     |> Enum.sum()
   end
 
-  def decrypt(file) do
+  def apply_decryption_key(file, decryption_key) do
+    Enum.map(file, fn number -> decryption_key * number end)
+  end
+
+  def add_init_positions(file) do
+    Enum.with_index(file)
+  end
+
+  def decrypt(file, 0) do
     file
-    |> Enum.with_index()
+  end
+
+  def decrypt(file, repetitions) do
+    file
     |> decrypt_at(0)
+    |> decrypt(repetitions - 1)
   end
 
   def decrypt_at(file, number_index) when number_index >= length(file) do
