@@ -6,12 +6,50 @@ defmodule Day21 do
     |> find_root_value()
   end
 
+  def execute_part2() do
+    get_data()
+    |> parse_data()
+    |> find_human_input()
+  end
+
   # actual logic
   def find_root_value(calculations) do
     calculations
     |> get_calculation_order()
     |> calculate(calculations)
     |> Map.get("root")
+  end
+
+  def find_human_input(calculations) do
+    {_, root_elements} = Map.get(calculations, "root")
+
+    calculations =
+      calculations
+      |> Map.put("humn", :x)
+      |> Map.put("root", {"=", root_elements})
+
+    human_input =
+      calculations
+      |> get_calculation_order()
+      |> calculate(calculations)
+      |> Map.get("root")
+      |> reverse_calculations()
+
+    calculations =
+      calculations
+      |> Map.put("humn", human_input)
+
+    calculations
+    |> get_calculation_order()
+    |> calculate(calculations)
+    |> Map.get("root")
+    |> case do
+      {left, right} when left == right ->
+        human_input
+
+      _ ->
+        :error
+    end
   end
 
   def get_calculation_order(calculations, elements_to_add \\ ["root"], calculation_order \\ [])
@@ -46,27 +84,70 @@ defmodule Day21 do
     Map.get(calculations, element)
     |> case do
       {operation, elements} ->
-        calculate_element(operation, elements, calculations)
+        elements
+        |> Enum.map(&get_value(calculations, &1))
+        |> calculate_operation(operation)
 
       value ->
         value
     end
   end
 
-  def calculate_element("+", elements, calculations) do
-    elements |> Enum.map(&get_value(calculations, &1)) |> Enum.sum()
+  def calculate_operation([e1, e2], "+")
+      when is_integer(e1) and is_integer(e2),
+      do: e1 + e2
+
+  def calculate_operation([e1, e2], "-")
+      when is_integer(e1) and is_integer(e2),
+      do: e1 - e2
+
+  def calculate_operation([e1, e2], "*")
+      when is_integer(e1) and is_integer(e2),
+      do: e1 * e2
+
+  def calculate_operation([e1, e2], "/")
+      when is_integer(e1) and is_integer(e2),
+      do: round(e1 / e2)
+
+  def calculate_operation([e1, e2], "="),
+    do: {e1, e2}
+
+  def calculate_operation(elements, operation),
+    do: [operation, elements]
+
+  def reverse_calculations({:x, result}) do
+    result
   end
 
-  def calculate_element("-", elements, calculations) do
-    elements |> Enum.map(&get_value(calculations, &1)) |> Enum.reduce(&(&2 - &1))
-  end
+  def reverse_calculations({[operation, elements], result}) do
+    {[number], [unknown]} = Enum.split_with(elements, &is_integer(&1))
 
-  def calculate_element("*", elements, calculations) do
-    elements |> Enum.map(&get_value(calculations, &1)) |> Enum.reduce(&(&1 * &2))
-  end
+    new_result =
+      case {operation, elements} do
+        {"+", _} ->
+          result - number
 
-  def calculate_element("/", elements, calculations) do
-    elements |> Enum.map(&get_value(calculations, &1)) |> Enum.reduce(&(&2 / &1)) |> round()
+        {"*", _} ->
+          round(result / number)
+
+        {"-", [_, n]} when n == number ->
+          result + number
+
+        {"-", [n, _]} when n == number ->
+          -(result - number)
+
+        {"/", [_, n]} when n == number ->
+          number * result
+
+        {"/", [n, _]} when n == number ->
+          round(number / result)
+
+        _ ->
+          IO.inspect("hodor")
+          [number, result]
+      end
+
+    reverse_calculations({unknown, new_result})
   end
 
   # helpers

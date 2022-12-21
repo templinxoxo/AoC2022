@@ -29,4 +29,24 @@ defmodule Day21Test do
 
     assert part1 == 152
   end
+
+  test "Part 2 - reverse calculation" do
+    assert reverse_calculations({["+", [:x, 3]], 5}) == 2
+    assert reverse_calculations({["+", [3, :x]], 5}) == 2
+    assert reverse_calculations({["-", [:x, 3]], 2}) == 5
+    assert reverse_calculations({["-", [3, :x]], 2}) == 1
+    assert reverse_calculations({["*", [:x, 3]], 6}) == 2
+    assert reverse_calculations({["*", [3, :x]], 6}) == 2
+    assert reverse_calculations({["/", [:x, 4]], 2}) == 8
+    assert reverse_calculations({["/", [4, :x]], 2}) == 2
+  end
+
+  test "Part 2 - find human input to match root calculation" do
+    part1 =
+      @test_data
+      |> parse_data()
+      |> find_human_input()
+
+    assert part1 == 301
+  end
 end
