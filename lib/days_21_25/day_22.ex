@@ -26,25 +26,22 @@ defmodule Day22 do
     1000 * (y + 1) + 4 * (x + 1) + get_direction_value(direction)
   end
 
-  def execute_command({:turn, turn_direction}, {x, y, current_direction}, _rows, _columns) do
-    IO.inspect("turn")
+  defp execute_command({:turn, turn_direction}, {x, y, current_direction}, _rows, _columns),
+    do: {x, y, rotate(current_direction, turn_direction)}
 
-    {x, y, rotate(current_direction, turn_direction)}
-  end
-
-  def execute_command({:move, tiles}, {x, y, ">"}, rows, _columns),
+  defp execute_command({:move, tiles}, {x, y, ">"}, rows, _columns),
     do: {move(rows[y], x, tiles, 1), y, ">"}
 
-  def execute_command({:move, tiles}, {x, y, "<"}, rows, _columns),
+  defp execute_command({:move, tiles}, {x, y, "<"}, rows, _columns),
     do: {move(rows[y], x, tiles, -1), y, "<"}
 
-  def execute_command({:move, tiles}, {x, y, "v"}, _rows, columns),
+  defp execute_command({:move, tiles}, {x, y, "v"}, _rows, columns),
     do: {x, move(columns[x], y, tiles, 1), "v"}
 
-  def execute_command({:move, tiles}, {x, y, "^"}, _rows, columns),
+  defp execute_command({:move, tiles}, {x, y, "^"}, _rows, columns),
     do: {x, move(columns[x], y, tiles, -1), "^"}
 
-  def move({{range_start, range_end}, []}, start_index, move_by, direction) do
+  defp move({{range_start, range_end}, []}, start_index, move_by, direction) do
     # in case there is no walls in the way - relative move will be module of number of moves and row (/column) length
     row_length = range_end - range_start
 
@@ -62,7 +59,7 @@ defmodule Day22 do
     end
   end
 
-  def move({range, walls}, start_index, move_by, direction) do
+  defp move({range, walls}, start_index, move_by, direction) do
     {walls_before, walls_after} = Enum.split_with(walls, &(&1 < start_index))
 
     first_wall = List.first(walls_before)
@@ -96,6 +93,9 @@ defmodule Day22 do
     do: range_end - range_start - abs(position - wall)
 
   @directions [">", "v", "<", "^"]
+
+  def all_directions(), do: @directions
+
   def get_direction_value(direction) do
     Enum.find_index(@directions, &(&1 == direction))
   end
