@@ -6,32 +6,46 @@ defmodule Day23 do
     |> calculate_covered_ground()
   end
 
+  def execute_part2() do
+    get_data()
+    |> parse_data()
+    |> count_rounds_until_moving_is_complete()
+  end
+
   # actual logic
-  def calculate_covered_ground(elf_positions, max_rounds \\ 10) do
+  def calculate_covered_ground(elf_positions) do
     directions = default_directions()
 
-    elf_move_round(elf_positions, directions, max_rounds)
+    elf_move_round(elf_positions, directions, 10)
     |> calculate_empty_spaces()
   end
 
-  def calculate_empty_spaces(elf_positions) do
+  def count_rounds_until_moving_is_complete(elf_positions) do
+    directions = default_directions()
+
+    rounds_passed =
+      elf_move_round(elf_positions, directions, -1)
+      |> elem(1)
+
+    abs(rounds_passed)
+  end
+
+  def calculate_empty_spaces({elf_positions, _}) do
     positions =
       elf_positions
       |> MapSet.to_list()
 
-    {min_x, max_x} = positions |> Enum.map(&elem(&1, 0)) |> Enum.min_max() |> IO.inspect()
-    {min_y, max_y} = positions |> Enum.map(&elem(&1, 1)) |> Enum.min_max() |> IO.inspect()
+    {min_x, max_x} = positions |> Enum.map(&elem(&1, 0)) |> Enum.min_max()
+    {min_y, max_y} = positions |> Enum.map(&elem(&1, 1)) |> Enum.min_max()
 
     (max_x + 1 - min_x) * (max_y + 1 - min_y) - length(positions)
   end
 
   def elf_move_round(elf_positions, _directions, 0) do
-    elf_positions
+    {elf_positions, 0}
   end
 
   def elf_move_round(elf_positions, directions, rounds_left) do
-    IO.inspect(elf_positions)
-
     proposed_positions =
       elf_positions
       |> Enum.map(fn elf ->
@@ -50,7 +64,7 @@ defmodule Day23 do
     finished_elves = Enum.filter(stacionary_elves, &(elem(&1, 0) == :finished))
 
     if length(finished_elves) == MapSet.size(elf_positions) do
-      elf_positions
+      {elf_positions, rounds_left}
     else
       duplicated_proposed_positions = get_duplicated_propositions(moving_elves)
 

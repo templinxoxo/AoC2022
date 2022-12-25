@@ -44,4 +44,22 @@ defmodule Day23Test do
 
     assert part1 == 110
   end
+
+  test "Part 2 - count rounds until moving is complete - small example" do
+    part2 =
+      @test_data_small
+      |> parse_data()
+      |> count_rounds_until_moving_is_complete()
+
+    assert part2 == 4
+  end
+
+  test "Part 2 - count rounds until moving is complete - big example" do
+    part2 =
+      @test_data_big
+      |> parse_data()
+      |> count_rounds_until_moving_is_complete()
+
+    assert part2 == 20
+  end
 end
