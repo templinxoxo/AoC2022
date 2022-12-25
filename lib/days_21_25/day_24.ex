@@ -7,17 +7,50 @@ defmodule Day24 do
     |> count_steps_to_pass_site()
   end
 
-  # actual logic
-  def count_steps_to_pass_site({winds, height, width}) do
-    traverse_blizzard([[{0, -1}]], winds, height, width)
-    |> length()
+  def execute_part2() do
+    get_data()
+    |> parse_data()
+    |> count_steps_to_pass_site_2_times()
   end
 
-  def traverse_blizzard([], _winds, _height, _width) do
+  # actual logic
+  def count_steps_to_pass_site({winds, height, width}) do
+    {path, _} = traverse_blizzard([[{0, -1}]], winds, height, width, {width - 1, height - 1})
+    length(path)
+  end
+
+  def count_steps_to_pass_site_2_times({winds, height, width}) do
+    {path_to_finish, winds_after_finishing} =
+      traverse_blizzard([[{0, -1}]], winds, height, width, {width - 1, height - 1})
+
+    {path_back, winds_after_coming_back} =
+      traverse_blizzard(
+        [[{width - 1, height - 1}]],
+        winds_after_finishing,
+        height,
+        width,
+        {0, -1}
+      )
+
+    {path_again_to_finish, _} =
+      traverse_blizzard(
+        [[{0, -1}]],
+        winds_after_coming_back,
+        height,
+        width,
+        {width - 1, height - 1}
+      )
+
+    length(path_to_finish) + length(path_back) + length(path_again_to_finish) - 2
+  end
+
+  def traverse_blizzard([], _winds, _height, _width, _end_coordinates) do
     []
   end
 
-  def traverse_blizzard(paths, winds, height, width) do
+  def traverse_blizzard(paths, winds, height, width, end_coordinates) do
+    paths |> Enum.at(0) |> length() |> IO.inspect()
+
     new_winds = blizzard_movement(winds, height, width)
     safe_coordinates = get_safe_coordinates(new_winds, height, width)
 
@@ -34,13 +67,13 @@ defmodule Day24 do
       |> deduplicate()
 
     new_paths
-    |> Enum.find(fn path -> List.last(path) == {width - 1, height - 1} end)
+    |> Enum.find(fn path -> List.last(path) == end_coordinates end)
     |> case do
       nil ->
-        traverse_blizzard(new_paths, new_winds, height, width)
+        traverse_blizzard(new_paths, new_winds, height, width, end_coordinates)
 
       path ->
-        path
+        {path, new_winds}
     end
   end
 
@@ -48,7 +81,6 @@ defmodule Day24 do
     paths
     |> Enum.map(&List.last(&1))
     |> Enum.uniq()
-    |> IO.inspect()
     |> Enum.map(fn last -> Enum.find(paths, &(List.last(&1) == last)) end)
   end
 
@@ -65,13 +97,13 @@ defmodule Day24 do
 
   def get_safe_coordinates(winds, height, width) do
     wind_coordinates = Enum.flat_map(winds, &elem(&1, 1))
-    MapSet.new(all_coordinates(height, width) -- wind_coordinates)
+    MapSet.new((all_coordinates(height, width) -- wind_coordinates) ++ [{0, -1}])
   end
 
   defmemo all_coordinates(height, width), expires_in: 30 * 1000 do
-    0..width
+    0..(width - 1)
     |> Enum.flat_map(fn x ->
-      0..height
+      0..(height - 1)
       |> Enum.map(fn y ->
         {x, y}
       end)
@@ -82,6 +114,7 @@ defmodule Day24 do
     [{x0 - 1, y0}, {x0 + 1, y0}, {x0, y0 - 1}, {x0, y0 + 1}, {x0, y0}]
     |> Enum.filter(fn
       # always allow end points if reached
+      {0, -1} -> true
       {x, y} when x == width - 1 and y == height - 1 -> true
       {-1, _y} -> false
       {_x, -1} -> false

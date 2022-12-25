@@ -12,12 +12,11 @@ defmodule Day24Test do
   ######.#
   """
 
-  test "Part 1 - " do
+  test "Part 1 - pass blizzard site" do
     part1 =
       @test_data
       |> parse_data()
       |> count_steps_to_pass_site()
-      |> IO.inspect()
 
     assert part1 == 18
   end
